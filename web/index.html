@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+  <title>Document</title>
+</head>
+<body>
+  <!-- <canvas id="canvas" width="1000" height="1000"></canvas> -->
+  <input class="modal-state" id="name-modal" type="checkbox" checked="checked" />
+  <div class="modal">
+    <label class="modal-bg"></label>
+    <div class="modal-body info-modal">
+      <h4 class="modal-title">请输入你的信息</h4>
+      <input type="text" placeholder="游戏名" id="username" />
+      <input type="email" placeholder="邮箱 (可选)" id="email" />
+      <label for="name-modal" class="paper-btn" id="username-ok">确认</label>
+    </div>
+  </div>
+  <div id="messages"></div>
+  <div className='row flex-spaces' id="alerts"></div>
+  <main id="root"></main>
+  <div id="countdown"></div>
+  <script type="module" src="index.tsx"></script>
+</body>
+</html>
