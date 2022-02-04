@@ -7,7 +7,7 @@ const Rooms: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([])
   useEffect(() => {
     $client.on('rooms', setRooms).emit('fetchRooms')
-    return () => $client.off('rooms', setRooms)
+    return () => { $client.off('rooms', setRooms) }
   }, [])
 
   const header = (

@@ -1,9 +1,9 @@
-import type { Client } from 'socket.io-client'
+import { Socket } from 'socket.io-client'
 
 declare global {
-  const $client: Client
+  const $client: Socket
 
   interface Window {
-    $client: Client
+    $client: Socket
   }
 }

@@ -4,10 +4,10 @@
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "sourceMap": true,
     "importHelpers": true,
     "importsNotUsedAsValues": "remove",
     "jsx": "react",
+    "outDir": "build",
 
     /* Interop Constraints */
     "isolatedModules": true,
@@ -38,10 +38,11 @@
 
     "skipLibCheck": true
   },
+  "include": ["src/index.ts"],
   "ts-node": {
     "transpileOnly": true,
     "compilerOptions": {
       "module": "commonjs"
     }
-  },
+  }
 }
