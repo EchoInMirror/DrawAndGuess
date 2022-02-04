@@ -2,6 +2,6 @@
   "/socket.io": {
     "ws": true,
     "changeOrigin": true,
-    "target": "http://127.0.0.1:24621/"
+    "target": "http://127.0.0.1:55789/"
   }
 }

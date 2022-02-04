@@ -12,6 +12,9 @@ const app = express()
 const server = createServer(app)
 const io = new Server(server, { serveClient: false })
 
+const MAX_IMAGE_SIZE = 512 * 1024 // 512KB
+const MAX_WORDS_SIZE = 16 * 1024 // 16KB
+
 app.use(express.static('dist'))
 
 io.use((socket, next) => {
@@ -182,7 +185,7 @@ io.on('connection', socket => {
     })
     .on('setRoomSettings', (round: number, words: string) => {
       const room = rooms[currentRoom]
-      if (!room || typeof round !== 'number' || typeof words !== 'string' || round > 10 || round < 1) return
+      if (!room || typeof round !== 'number' || typeof words !== 'string' || round > 10 || round < 1 || room.words.length > MAX_WORDS_SIZE) return
       room.round = round
       room.words = words
     })
@@ -191,7 +194,7 @@ io.on('connection', socket => {
     })
     .on('submit', (word: string) => {
       const room = inGameMap[currentRoom]
-      if (!word || typeof word !== 'string' || !room?.submitCountDown || (!word.startsWith('data:image/png;base64,') && word.length > 50)) return
+      if (!word || typeof word !== 'string' || !room?.submitCountDown || word.length > (word.startsWith('data:image/png;base64,') ? MAX_IMAGE_SIZE : 50)) return
       const data = room.roundData[(room.playerCount + room.orderMap[token] - (room.stage === 1 ? room.stage - 1 : room.stage - 2)) % room.playerCount]
       if (data.length < room.stage) data.push(word)
       io.in(currentRoom.toString()).emit('playerStatus', mapPlayersStatus(room))
@@ -273,15 +276,15 @@ setInterval(() => {
               const p = userMap[it]
               if (p) p.ready = false
             })
-            cur.order.forEach(it => { delete inGamePlayers[it] })
-            delete inGameMap[key]
             io.in(key).emit('gameOver', cur.order.map(it => {
               const user = userMap[it]
               const goal = cur.goals[it]
               return user ? { goal, name: user.name, email: user.email } : { goal, name: '离线玩家', email: '' }
             }).sort((a, b) => b.goal - a.goal) as PlayerRank[])
-            io.in(key).emit('inRoom', mapRoom(key))
+            delete inGameMap[key]
           }
+          cur.order.forEach(it => { delete inGamePlayers[it] })
+          io.in(key).emit('inRoom', mapRoom(key))
         } else {
           const data = cur.roundData[cur.summaryIndex]
           io.in(key).emit('summary', {
@@ -301,7 +304,7 @@ setInterval(() => {
             cur.summaryStage = 0
             cur.summaryCountdown = 3
             cur.judgeTimer = 24
-            io.in(key).emit('countdown', 23)
+            io.in(key).emit('countdown', 26)
             io.in(key).emit('needJudge', true)
             cur.summaryIndex++
           }

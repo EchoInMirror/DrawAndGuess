@@ -27,7 +27,7 @@ document.getElementById('username-ok')!.onclick = () => {
   const io = window.$client = socketIO({ transports: ['websocket'], auth: { token, name, email: email.value } })
   io.on('connect', () => render(<App />, document.getElementById('root')!))
     .on('disconnect', () => alert('连接已断开!', true, 'danger'))
-    .on('connect_error', () => alert('连接失败!', true, 'danger'))
+    .on('connect_error', e => alert(e.message || '连接失败!', true, 'danger'))
     .on('countdown', (time: number, ahead0: boolean) => {
       countdownInt = time
       if ((ahead = !!ahead0)) countdownInt -= 3

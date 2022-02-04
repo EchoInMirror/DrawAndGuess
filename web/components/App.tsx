@@ -42,6 +42,15 @@ const App: React.FC = () => {
   setPlayerStatusDialogOpen = setPlayerStatusDialogOpen0
 
   useEffect(() => {
+    const onGameStart = (words: string[]) => {
+      console.log(words)
+      setWords(words)
+      setSummary(undefined)
+      setStageData(undefined)
+      setPlayerStatus([])
+      setPlayerStatusDialogOpen0(false)
+      prevImage = prevItem = undefined
+    }
     const onStage = (data: string) => {
       setGoals(undefined)
       setStageData(data)
@@ -65,9 +74,9 @@ const App: React.FC = () => {
       else prevItem = data.data
       setSummary(data)
     }
-    const onNeedJudge = (data: boolean) => setTimeout(setJudgeDialogOpen, 3000, data)
+    const onNeedJudge = (data: boolean) => data ? setTimeout(setJudgeDialogOpen, 8000, true) : setJudgeDialogOpen(false)
     $client.on('inRoom', setCurrentRoom)
-      .on('gameStart', setWords)
+      .on('gameStart', onGameStart)
       .on('stage', onStage)
       .on('playerStatus', setPlayerStatus)
       .on('currentPlayerStatus', onCurrentPlayerStatus)
@@ -78,7 +87,7 @@ const App: React.FC = () => {
     $client.io.on('reconnect', () => $client.emit('queryInGameStatus'))
     return () => {
       $client.off('inRoom', setCurrentRoom)
-        .off('gameStart', setWords)
+        .off('gameStart', onGameStart)
         .off('playerStatus', setPlayerStatus)
         .off('stage', onStage)
         .off('currentPlayerStatus', onCurrentPlayerStatus)
@@ -114,6 +123,7 @@ const App: React.FC = () => {
     </Dialog>
   )
 
+  console.log(summary)
   if (summary) {
     const isImage = summary.data.startsWith('data:image/png;base64,')
     const src = isImage ? summary.data : prevImage
@@ -185,8 +195,8 @@ const App: React.FC = () => {
           ))}
         </div>
       </Dialog>
-      <Dialog open={!!goals} title='排行榜' onClose={() => setGoals(undefined)}>
-        {goals?.map((it, i) => <div key={i}>{i + 1}. {it.email && <Avatar email={it.email} alt={it.name} size={24} />} {it.name}: <b>{it.goal}</b></div>)}
+      <Dialog open={!!goals} title='排行榜' onClose={() => setGoals(undefined)} className='ranklist'>
+        {goals?.map((it, i) => <div key={i}>{i + 1}.&nbsp;{it.email && <Avatar email={it.email} alt={it.name} size={24} />}&nbsp;{it.name}:&nbsp;<b>{it.goal}</b></div>)}
       </Dialog>
       {playerStatusDialog}
       <Messages key='messages' />
