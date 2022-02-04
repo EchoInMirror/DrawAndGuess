@@ -69,6 +69,7 @@ const mapRoom = (id: number | string): Room | undefined => {
 }
 
 const leaveRoom = (id: number, token: string) => {
+  if (!rooms[id]) return
   if (rooms[id].players.length === 1 && rooms[id].players[0] === token) {
     delete rooms[id]
     if (inGameMap[id]) {
@@ -136,8 +137,10 @@ io.on('connection', socket => {
       if (!currentRoom) return
       const str = currentRoom.toString()
       socket.leave(str)
-      leaveRoom(currentRoom, token)
-      if (rooms[str]) io.in(str).emit('inRoom', mapRoom(str))
+      if (rooms[str]) {
+        leaveRoom(currentRoom, token)
+        io.in(str).emit('inRoom', mapRoom(str))
+      }
       socket.emit('inRoom', undefined)
       currentRoom = 0
       syncRooms()
