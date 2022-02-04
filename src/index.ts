@@ -16,10 +16,10 @@ app.use(express.static('dist'))
 
 io.use((socket, next) => {
   const { token, name, email } = socket.handshake.auth
-  if (typeof token === 'string' && token.length > 10 && name && typeof name === 'string' && typeof email === 'string') {
+  if (typeof token === 'string' && token.length > 10 && name && typeof name === 'string' && typeof email === 'string' && name.length < 30 && email.length < 30 && token.length < 30) {
     socket.handshake.auth.email = createHash('md5').update(email.trim().toLowerCase()).digest('hex')
     next()
-  } else next(new Error('No token!'))
+  } else next(new Error('名字或邮箱过长!'))
 })
 
 interface RoomData {
@@ -79,7 +79,12 @@ const leaveRoom = (id: number, token: string) => {
 
 const syncRooms = () => {
   const ret = []
-  for (const key in rooms) ret.push(mapRoom(key))
+  for (const key in rooms) {
+    if (!rooms[key].players.length) {
+      delete rooms[key]
+      delete inGameMap[key]
+    } else ret.push(mapRoom(key))
+  }
   io.emit('rooms', ret)
 }
 
