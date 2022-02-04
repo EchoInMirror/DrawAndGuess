@@ -8,7 +8,7 @@ const Dialog: React.FC<{ open?: boolean, onClose?: () => void, className?: strin
         <label className='modal-bg' onClick={onClose} />
         <div className='modal-body'>
           {title && <h4 className='modal-title'>{title}</h4>}
-          <label className='btn-close' onClick={onClose}>X</label>
+          {onClose && <label className='btn-close' onClick={onClose}>X</label>}
           {children}
         </div>
       </div>

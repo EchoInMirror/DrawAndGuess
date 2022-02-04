@@ -1,6 +1,7 @@
 import './Rooms.less'
 import type { Room } from '../../types'
 import React, { useState, useEffect } from 'react'
+import Avatar from './Avatar'
 
 const Rooms: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([])
@@ -40,6 +41,7 @@ const Rooms: React.FC = () => {
         {rooms.map((it, i) => (
           <div className='card' key={i}>
             <div className='card-body'>
+              <div className='avatar-wrapper'><Avatar email={it.players[0].email} alt={it.players[0].name} /></div>
               <h4 className='card-title'>{it.players[0].name} 的房间</h4>
               <h5 className='modal-subtitle'>人数: {it.players.length}</h5>
               {it.joinable && <button onClick={() => $client.emit('joinRoom', it.id)}>加入房间</button>}

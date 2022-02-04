@@ -5,6 +5,7 @@ import React from 'react'
 import App from './components/App'
 import socketIO from 'socket.io-client'
 
+let ahead = false
 let countdownInt = 0
 const countdown = document.getElementById('countdown') as HTMLDivElement
 const username = document.getElementById('username') as HTMLInputElement
@@ -27,13 +28,19 @@ document.getElementById('username-ok')!.onclick = () => {
   io.on('connect', () => render(<App />, document.getElementById('root')!))
     .on('disconnect', () => alert('连接已断开!', true, 'danger'))
     .on('connect_error', () => alert('连接失败!', true, 'danger'))
-    .on('countdown', time => (countdownInt = time))
+    .on('countdown', (time: number, ahead0: boolean) => {
+      countdownInt = time
+      if ((ahead = !!ahead0)) countdownInt -= 3
+    })
 }
 
 setInterval(() => {
   if (countdownInt) {
     countdown.innerText = `倒计时: ${countdownInt--}秒`
-    if (!countdownInt) countdown.innerText = ''
+    if (!countdownInt) {
+      countdown.innerText = ''
+      if (ahead) window.dispatchEvent(new Event('countdownEnd'))
+    }
   }
 }, 1000)
 
