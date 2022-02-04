@@ -175,7 +175,7 @@ io.on('connection', socket => {
     })
     .on('setRoomSettings', (round: number, words: string) => {
       const room = rooms[currentRoom]
-      if (!room || typeof round !== 'number' || typeof words !== 'string') return
+      if (!room || typeof round !== 'number' || typeof words !== 'string' || round > 10 || round < 1) return
       room.round = round
       room.words = words
     })
@@ -229,7 +229,6 @@ setInterval(() => {
     if (cur.preCountDown) {
       if (--cur.preCountDown) io.in(key).emit('message', `游戏将在 ${cur.preCountDown} 秒后开始!`)
       else {
-        // io.in(key).emit('order', )
         const words = cur.words = room.words.replace(/[\n\t]| {2}/g, ' ').trim().split(' ').sort(() => 0.5 - Math.random())
         for (let i = words.length, end = cur.playerCount * 4; i < end; i++) words.push(defaultWordsArr[Math.random() * defaultWordsArr.length | 0])
         cur.order.forEach((it, i) => {
@@ -328,7 +327,7 @@ setInterval(() => {
             client.emit('stage', data[cur.stage - 2])
             client.emit('message', `上家: ${userMap[cur.order[(cur.playerCount + i - 1) % cur.playerCount]]?.name || '离线玩家'}, 下家: ${userMap[cur.order[(cur.playerCount + i + 1) % cur.playerCount]]?.name || '离线玩家'}`)
           })
-          cur.submitCountDown = isDrawing ? 124 : 34
+          cur.submitCountDown = isDrawing ? 124 : 44
           io.in(key).emit('countdown', cur.submitCountDown - 1, true)
         }
       }
