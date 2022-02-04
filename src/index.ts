@@ -156,7 +156,7 @@ io.on('connection', socket => {
             goals,
             orderMap,
             playerCount,
-            preCountDown: 1,
+            preCountDown: 6,
             currentRound: rooms[str].round,
             submitCountDown: 0,
             stage: 0,
