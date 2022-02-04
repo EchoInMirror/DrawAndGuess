@@ -18,7 +18,7 @@ const MAX_WORDS_SIZE = 16 * 1024 // 16KB
 app.use(express.static('dist'))
 
 io.use((socket, next) => {
-  const { token, name, email } = socket.handshake.auth
+  const { token, name, email = '' } = socket.handshake.auth
   if (typeof token === 'string' && token.length > 10 && name && typeof name === 'string' && typeof email === 'string' && name.length < 30 && email.length < 30 && token.length < 30) {
     socket.handshake.auth.email = createHash('md5').update(email.trim().toLowerCase()).digest('hex')
     next()
@@ -100,7 +100,11 @@ const mapPlayersStatus = (room: InGameData) => room.order.map((token, i) => mapP
 let roomID = 1
 io.on('connection', socket => {
   let currentRoom = 0
-  const { token, email, name = 'Player' + Math.random().toString(32).slice(2) } = socket.handshake.auth
+  const { token, email = '', name = 'Player' + Math.random().toString(32).slice(2) } = socket.handshake.auth
+  if (userMap[token]) {
+    const client = io.sockets.sockets.get(userMap[token].id)
+    if (client) client.disconnect()
+  }
   userMap[token] = { name, email, id: socket.id, ready: false }
   userIdMap[socket.id] = token
   socket
@@ -124,7 +128,10 @@ io.on('connection', socket => {
     })
     .on('joinRoom', (id: number) => {
       if (!rooms[id] || inGameMap[id] || inGamePlayers[token]) return
-      if (currentRoom) socket.leave(currentRoom.toString())
+      if (currentRoom) {
+        socket.leave(currentRoom.toString())
+        leaveRoom(currentRoom, token)
+      }
       userMap[token].ready = false
       const str = id.toString()
       socket.join(str)
@@ -146,7 +153,7 @@ io.on('connection', socket => {
       syncRooms()
     })
     .on('ready', () => {
-      if (!currentRoom) return
+      if (!currentRoom || inGameMap[currentRoom]) return
       const str = currentRoom.toString()
       userMap[token].ready = !userMap[token].ready
       if (rooms[str]) {
@@ -259,7 +266,7 @@ setInterval(() => {
     } else if (cur.judgeTimer) {
       if (--cur.judgeTimer <= 0) {
         io.in(key).emit('needJudge', false)
-        io.in(key).emit('message', `通过: ${cur.yes.size}, 不通过: ${cur.no.size}`)
+        io.in(key).emit('message', `合理: ${cur.yes.size}, 不合理: ${cur.no.size}`)
         if (cur.yes.size > cur.no.size) cur.goals[cur.order[cur.summaryIndex - 1]]++
         cur.yes.clear()
         cur.no.clear()

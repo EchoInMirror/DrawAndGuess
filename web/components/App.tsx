@@ -1,6 +1,6 @@
 import './App.less'
 import type { Player, Room, Summary, PlayerRank } from '../../types'
-import React, { useEffect, useState, createRef } from 'react'
+import React, { useEffect, useState, createRef, useRef } from 'react'
 import Rooms from './Rooms'
 import InRoom from './InRoom'
 import Dialog from './Dialog'
@@ -30,7 +30,6 @@ let prevImage: string | undefined
 let prevItem: string | undefined
 const App: React.FC = () => {
   const [currentRoom, setCurrentRoom] = useState<Room>()
-  const [showChatBox, setShowChatBox] = useState(true)
   const [chatText, setChatText] = useState('')
   const [words, setWords] = useState<string[]>([])
   const [stageData, setStageData] = useState<string>()
@@ -39,11 +38,11 @@ const App: React.FC = () => {
   const [judgeDialogOpen, setJudgeDialogOpen] = useState(false)
   const [summary, setSummary] = useState<Summary>()
   const [goals, setGoals] = useState<PlayerRank[]>()
+  const messageTextRef = useRef<HTMLInputElement | null>(null)
   setPlayerStatusDialogOpen = setPlayerStatusDialogOpen0
 
   useEffect(() => {
     const onGameStart = (words: string[]) => {
-      console.log(words)
       setWords(words)
       setSummary(undefined)
       setStageData(undefined)
@@ -85,7 +84,16 @@ const App: React.FC = () => {
       .on('needJudge', onNeedJudge)
       .emit('queryInGameStatus')
     $client.io.on('reconnect', () => $client.emit('queryInGameStatus'))
+    const onKeyPress = (e: any) => {
+      if (e.code === 'Enter' && !(e.target instanceof HTMLInputElement) && messageTextRef.current && !messageTextRef.current.parentElement!.className) {
+        messageTextRef.current.parentElement!.className = 'active'
+        if (messageRef.current) messageRef.current.className = 'active'
+        messageTextRef.current.focus()
+      }
+    }
+    document.addEventListener('keypress', onKeyPress)
     return () => {
+      document.removeEventListener('keypress', onKeyPress)
       $client.off('inRoom', setCurrentRoom)
         .off('gameStart', onGameStart)
         .off('playerStatus', setPlayerStatus)
@@ -97,21 +105,32 @@ const App: React.FC = () => {
     }
   }, [])
 
+  const sendMessage = (e: any) => {
+    console.log()
+    const className = e.currentTarget.parentElement!.className = e.currentTarget.parentElement!.className ? '' : 'active'
+    if (messageRef.current) messageRef.current.className = className
+    if (!className && chatText) {
+      $client.emit('sendMessage', chatText)
+      setChatText('')
+    }
+  }
+
   const chatActions = (
     <div id='chat-actions'>
-      <button
-        className='btn-small'
-        onClick={e => {
-          setShowChatBox(!showChatBox)
-          const className = e.currentTarget.parentElement!.className = showChatBox ? 'active' : ''
-          if (messageRef.current) messageRef.current.className = className
-          if (!showChatBox && chatText) {
-            $client.emit('sendMessage', chatText)
-            setChatText('')
-          }
+      <button className='btn-small' onClick={sendMessage} />
+      <input
+        type='text'
+        placeholder='信息'
+        id='chat-text'
+        value={chatText}
+        ref={messageTextRef}
+        onChange={e => setChatText(e.target.value)}
+        onKeyPress={e => {
+          if (e.code !== 'Enter') return
+          e.preventDefault()
+          sendMessage(e)
         }}
       />
-      <input type='text' placeholder='信息' id='chat-text' value={chatText} onChange={e => setChatText(e.target.value)} />
     </div>
   )
 
@@ -123,7 +142,6 @@ const App: React.FC = () => {
     </Dialog>
   )
 
-  console.log(summary)
   if (summary) {
     const isImage = summary.data.startsWith('data:image/png;base64,')
     const src = isImage ? summary.data : prevImage
@@ -139,7 +157,7 @@ const App: React.FC = () => {
         </nav>
         {chatActions}
         <div className='summary'><img className='other-image' src={src} key={src} /></div>
-        <Dialog open={judgeDialogOpen} title='你认为以上过程合理吗?'>
+        <Dialog open={judgeDialogOpen} title='这合理吗?'>
           <button
             className='text-success'
             onClick={() => {

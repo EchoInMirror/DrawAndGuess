@@ -15,6 +15,15 @@ window.addEventListener('resize', () => {
   img.onload = () => (board!.canvas.getContext('2d')!.drawImage(img, 0, 0))
   img.src = (board as any)._history._present
 })
+document.addEventListener('keydown', e => {
+  if (!e.ctrlKey || e.target instanceof HTMLInputElement) return
+  switch (e.code) {
+    case 'KeyZ':
+      board?.undo()
+      break
+    case 'KeyY': board?.redo()
+  }
+})
 
 let isImage = false
 const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
@@ -23,6 +32,7 @@ const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [color, setColor] = useState('#000')
   const [value, setValue] = useState('')
+  const [lineSize, setLineSize] = useState(1)
   const [eraserMode, setEraserMode] = useState(false)
   const ref = useRef<HTMLInputElement | null>(null)
 
@@ -76,16 +86,8 @@ const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
             if (board) board.destroy()
             board = createDrawBoard(elm)
             board.setLineColor(color)
+            board.setLineSize(lineSize)
           }, 20)
-        }}
-        onKeyPress={e => {
-          if (!e.ctrlKey) return
-          switch (e.code) {
-            case 'KeyZ':
-              board?.undo()
-              break
-            case 'KeyY': board?.redo()
-          }
         }}
       />
       )
@@ -97,7 +99,17 @@ const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
         <div className='nav-brand'><h4>请绘制: <b>{stageData}</b></h4></div>
         <fieldset className='form-group'>
           <label htmlFor='line-size'>画笔粗细:</label>
-          <input type='range' id='line-size' min='1' max='20' defaultValue='1' onChange={e => board?.setLineSize(+e.target.value)} />
+          <input
+            type='range'
+            id='line-size'
+            min='1'
+            max='20'
+            value={lineSize}
+            onChange={e => {
+              setLineSize(+e.target.value)
+              board?.setLineSize(+e.target.value)
+            }}
+          />
         </fieldset>
         <div>
           <ul className='inline'>
