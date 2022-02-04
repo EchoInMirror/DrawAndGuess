@@ -187,11 +187,11 @@ io.on('connection', socket => {
       room.words = words
     })
     .on('sendMessage', (msg: string) => {
-      if (typeof msg === 'string' && rooms[currentRoom]) io.in(currentRoom.toString()).emit('message', msg, name, email)
+      if (typeof msg === 'string' && rooms[currentRoom] && msg.length < 100) io.in(currentRoom.toString()).emit('message', msg, name, email)
     })
     .on('submit', (word: string) => {
       const room = inGameMap[currentRoom]
-      if (!word || typeof word !== 'string' || !room?.submitCountDown) return
+      if (!word || typeof word !== 'string' || !room?.submitCountDown || (!word.startsWith('data:image/png;base64,') && word.length > 50)) return
       const data = room.roundData[(room.playerCount + room.orderMap[token] - (room.stage === 1 ? room.stage - 1 : room.stage - 2)) % room.playerCount]
       if (data.length < room.stage) data.push(word)
       io.in(currentRoom.toString()).emit('playerStatus', mapPlayersStatus(room))
