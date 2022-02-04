@@ -52,12 +52,12 @@ const userIdMap: Record<string, string> = { }
 const inGameMap: Record<number | string, InGameData> = { }
 const inGamePlayers: Record<string, string> = { }
 
-const mapRoom = (id: number | string, token?: string): Room | undefined => {
+const mapRoom = (id: number | string): Room | undefined => {
   const room = rooms[id]
   return room
     ? {
         id: typeof id === 'number' ? id : +id,
-        joinable: !token || !inGameMap[token] || inGameMap[token].order.includes(token),
+        joinable: !inGameMap[id],
         players: room.players.map(uid => userMap[uid])
       }
     : undefined
@@ -169,6 +169,7 @@ io.on('connection', socket => {
       }
     })
     .on('getRoomSettings', fn => {
+      if (typeof fn !== 'function') return
       const room = rooms[currentRoom]
       if (room) fn(room.round, room.words)
     })
@@ -293,8 +294,8 @@ setInterval(() => {
           if (++cur.summaryStage >= data.length) {
             cur.summaryStage = 0
             cur.summaryCountdown = 3
-            cur.judgeTimer = 21
-            io.in(key).emit('countdown', 20)
+            cur.judgeTimer = 24
+            io.in(key).emit('countdown', 23)
             io.in(key).emit('needJudge', true)
             cur.summaryIndex++
           }

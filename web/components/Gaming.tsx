@@ -2,10 +2,10 @@ import './Gaming.less'
 import React, { useState, useEffect, useRef } from 'react'
 import Dialog from './Dialog'
 import Sketch from 'react-color/lib/components/sketch/Sketch'
+import { DrawingBoard, createDrawBoard } from '../utils'
 import { setPlayerStatusDialogOpen } from './App'
-import { create, SimpleDrawingBoard } from 'simple-drawing-board'
 
-let board: SimpleDrawingBoard | undefined
+let board: DrawingBoard | undefined
 window.addEventListener('resize', () => {
   if (!board) return
   const box = board.canvas.getBoundingClientRect()
@@ -23,10 +23,12 @@ const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [color, setColor] = useState('#000')
   const [value, setValue] = useState('')
+  const [eraserMode, setEraserMode] = useState(false)
   const ref = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     setValue('')
+    setEraserMode(false)
   }, [stageData])
 
   isImage = stageData.startsWith('data:image/png;base64,')
@@ -72,9 +74,18 @@ const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
             elm.width = box.width
             elm.height = box.height
             if (board) board.destroy()
-            board = create(elm)
+            board = createDrawBoard(elm)
             board.setLineColor(color)
           }, 20)
+        }}
+        onKeyPress={e => {
+          if (!e.ctrlKey) return
+          switch (e.code) {
+            case 'KeyZ':
+              board?.undo()
+              break
+            case 'KeyY': board?.redo()
+          }
         }}
       />
       )
@@ -100,6 +111,18 @@ const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
                 }}
               >
                 颜色
+              </a>
+            </li>
+            <li>
+              <a
+                href='#'
+                onClick={e => {
+                  e.preventDefault()
+                  if (board) board.eraserMode = !eraserMode
+                  setEraserMode(!eraserMode)
+                }}
+              >
+                {eraserMode ? '画笔' : '橡皮'}
               </a>
             </li>
             <li>

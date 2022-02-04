@@ -65,6 +65,7 @@ const App: React.FC = () => {
       else prevItem = data.data
       setSummary(data)
     }
+    const onNeedJudge = (data: boolean) => setTimeout(setJudgeDialogOpen, 3000, data)
     $client.on('inRoom', setCurrentRoom)
       .on('gameStart', setWords)
       .on('stage', onStage)
@@ -72,8 +73,9 @@ const App: React.FC = () => {
       .on('currentPlayerStatus', onCurrentPlayerStatus)
       .on('gameOver', onGameOver)
       .on('summary', onSummary)
-      .on('needJudge', setJudgeDialogOpen)
+      .on('needJudge', onNeedJudge)
       .emit('queryInGameStatus')
+    $client.io.on('reconnect', () => $client.emit('queryInGameStatus'))
     return () => {
       $client.off('inRoom', setCurrentRoom)
         .off('gameStart', setWords)
@@ -82,7 +84,7 @@ const App: React.FC = () => {
         .off('currentPlayerStatus', onCurrentPlayerStatus)
         .off('gameOver', onGameOver)
         .off('summary', onSummary)
-        .off('needJudge', setJudgeDialogOpen)
+        .off('needJudge', onNeedJudge)
     }
   }, [])
 

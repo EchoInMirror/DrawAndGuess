@@ -1,3 +1,5 @@
+import { create, SimpleDrawingBoard } from 'simple-drawing-board'
+
 const alerts = document.getElementById('alerts')!
 
 export type ColorTypes = 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
@@ -21,3 +23,42 @@ export const alert = (message: string, autoClose = false, type: ColorTypes = 'se
 }
 
 export const generateID = () => Date.now().toString(36) + Math.random().toString(36).substring(2)
+
+export type DrawingBoard = SimpleDrawingBoard & { eraserMode: boolean }
+
+const getMidInputCoords = (old: { x: number, y: number }, coords: { x: number, y: number }) => ({ x: (old.x + coords.x) >> 1, y: (old.y + coords.y) >> 1 })
+
+export const createDrawBoard = (elm: HTMLCanvasElement) => {
+  const board: any = create(elm)
+  board.eraserMode = false
+  board._drawFrame = function () {
+    this._timer = requestAnimationFrame(() => this._drawFrame())
+    if (!this._isDrawing) return
+    const isSameCoords =
+      this._coords.old.x === this._coords.current.x &&
+      this._coords.old.y === this._coords.current.y
+    const currentMid = getMidInputCoords(
+      this._coords.old,
+      this._coords.current
+    )
+    const ctx = this._ctx
+
+    ctx.beginPath()
+    if (this.eraserMode) ctx.globalCompositeOperation = 'destination-out'
+    ctx.moveTo(currentMid.x, currentMid.y)
+    ctx.quadraticCurveTo(
+      this._coords.old.x,
+      this._coords.old.y,
+      this._coords.oldMid.x,
+      this._coords.oldMid.y
+    )
+    ctx.stroke()
+    if (this.eraserMode) ctx.globalCompositeOperation = 'source-over'
+
+    this._coords.old = this._coords.current
+    this._coords.oldMid = currentMid
+
+    if (!isSameCoords) this._ev.trigger('draw', this._coords.current)
+  }
+  return board as DrawingBoard
+}
