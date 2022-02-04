@@ -6,13 +6,19 @@ import { DrawingBoard, createDrawBoard } from '../utils'
 import { setPlayerStatusDialogOpen } from './App'
 
 let board: DrawingBoard | undefined
+let color_ = ''
+let lineSize_ = 1
 window.addEventListener('resize', () => {
   if (!board) return
   const box = board.canvas.getBoundingClientRect()
   board.canvas.width = box.width
   board.canvas.height = box.height
   const img = new Image()
-  img.onload = () => (board!.canvas.getContext('2d')!.drawImage(img, 0, 0))
+  img.onload = () => {
+    board!.canvas.getContext('2d')!.drawImage(img, 0, 0)
+    board.setLineSize(lineSize_)
+    board.setLineColor(color_)
+  }
   img.src = (board as any)._history._present
 })
 document.addEventListener('keydown', e => {
@@ -35,6 +41,8 @@ const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
   const [lineSize, setLineSize] = useState(1)
   const [eraserMode, setEraserMode] = useState(false)
   const ref = useRef<HTMLInputElement | null>(null)
+  color_ = color
+  lineSize_ = lineSize
 
   useEffect(() => {
     setValue('')
@@ -85,8 +93,8 @@ const Gaming: React.FC<{ stageData: string }> = ({ stageData }) => {
             elm.height = box.height
             if (board) board.destroy()
             board = createDrawBoard(elm)
-            board.setLineColor(color)
-            board.setLineSize(lineSize)
+            board.setLineColor(color_)
+            board.setLineSize(lineSize_)
           }, 20)
         }}
       />
