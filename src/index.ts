@@ -10,7 +10,9 @@ const defaultWordsArr = defaultWords.split(' ')
 
 const app = express()
 const server = createServer(app)
-const io = new Server(server)
+const io = new Server(server, { serveClient: false })
+
+app.use(express.static('dist'))
 
 io.use((socket, next) => {
   const { token, name, email } = socket.handshake.auth
