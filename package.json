@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@parcel/transformer-less": "^2.2.1",
+    "@types/express": "^4.17.13",
     "express": "^4.17.2",
     "less": "^4.1.2",
     "papercss": "^1.8.3",

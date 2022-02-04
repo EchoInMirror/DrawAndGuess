@@ -222,7 +222,7 @@ io.on('connection', socket => {
   }
 }).on('error', console.error)
 
-server.listen(24621)
+server.listen(+process.env.PORT! || 55789)
 
 setInterval(() => {
   for (const key in inGameMap) {
