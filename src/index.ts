@@ -315,7 +315,7 @@ setInterval(() => {
             cur.summaryCountdown = 3
             cur.judgeTimer = 24
             io.in(key).emit('countdown', 26)
-            io.in(key).emit('needJudge', true)
+            io.in(key).emit('needJudge', true, data[0], data[data.length - 1])
             cur.summaryIndex++
           }
         }
@@ -347,7 +347,7 @@ setInterval(() => {
             client.emit('stage', data[cur.stage - 2])
             client.emit('message', `上家: ${userMap[cur.order[(cur.playerCount + i - 1) % cur.playerCount]]?.name || '离线玩家'}, 下家: ${userMap[cur.order[(cur.playerCount + i + 1) % cur.playerCount]]?.name || '离线玩家'}`)
           })
-          cur.submitCountDown = isDrawing ? 124 : 44
+          cur.submitCountDown = isDrawing ? 124 : 31
           io.in(key).emit('countdown', cur.submitCountDown - 1, true)
         }
       }

@@ -44,4 +44,4 @@ setInterval(() => {
   }
 }, 1000)
 
-// const sdb = create(document.getElementById('canvas') as HTMLCanvasElement)
+document.body.addEventListener('touchmove', e => e.preventDefault(), { passive: false })

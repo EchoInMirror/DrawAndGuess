@@ -1,5 +1,6 @@
 import './App.less'
 import type { Player, Room, Summary, PlayerRank } from '../../types'
+import { notify } from '../utils'
 import React, { useEffect, useState, createRef, useRef } from 'react'
 import Rooms from './Rooms'
 import InRoom from './InRoom'
@@ -28,6 +29,8 @@ export let setPlayerStatusDialogOpen = (_val: boolean) => { }
 
 let prevImage: string | undefined
 let prevItem: string | undefined
+let firstData = ''
+let endData = ''
 const App: React.FC = () => {
   const [currentRoom, setCurrentRoom] = useState<Room>()
   const [chatText, setChatText] = useState('')
@@ -49,11 +52,13 @@ const App: React.FC = () => {
       setPlayerStatus([])
       setPlayerStatusDialogOpen0(false)
       prevImage = prevItem = undefined
+      notify()
     }
     const onStage = (data: string) => {
       setGoals(undefined)
       setStageData(data)
       setPlayerStatusDialogOpen(false)
+      notify()
     }
     const onCurrentPlayerStatus = (data: Player[]) => {
       setPlayerStatus(data)
@@ -73,7 +78,16 @@ const App: React.FC = () => {
       else prevItem = data.data
       setSummary(data)
     }
-    const onNeedJudge = (data: boolean) => data ? setTimeout(setJudgeDialogOpen, 8000, true) : setJudgeDialogOpen(false)
+    const onNeedJudge = (data: boolean, first: string, end: string) => {
+      if (data) {
+        firstData = first
+        endData = end
+        setTimeout(() => {
+          notify()
+          setJudgeDialogOpen(true)
+        }, 8000, true)
+      } else setJudgeDialogOpen(false)
+    }
     $client.on('inRoom', setCurrentRoom)
       .on('gameStart', onGameStart)
       .on('stage', onStage)
@@ -157,7 +171,17 @@ const App: React.FC = () => {
         </nav>
         {chatActions}
         <div className='summary'><img className='other-image' src={src} key={src} /></div>
-        <Dialog open={judgeDialogOpen} title='这合理吗?'>
+        <Dialog open={judgeDialogOpen} title='这合理吗?' className='summary-dialog'>
+          {endData.startsWith('data:image/png;base64,')
+            ? (
+              <>
+                <h3>这是: <b>{firstData}</b> 吗?</h3>
+                <div className='summary-image'><img src={endData} /></div>
+              </>)
+            : (
+              <>
+                从【<b>{firstData}</b>】到【<b>{endData}</b>】
+              </>)}
           <button
             className='text-success'
             onClick={() => {

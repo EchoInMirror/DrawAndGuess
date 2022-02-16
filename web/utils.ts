@@ -62,3 +62,17 @@ export const createDrawBoard = (elm: HTMLCanvasElement) => {
   }
   return board as DrawingBoard
 }
+
+let notifiable = false
+if ('Notification' in window) {
+  if (Notification.permission === 'granted') notifiable = true
+  else if (Notification.permission !== 'denied') {
+    alert('请点击通过以弹出提示!')
+    Notification.requestPermission().then(it => it === 'granted' && (notifiable = true))
+  }
+}
+
+export const notify = (str = '到了你的回合!') => {
+  // eslint-disable-next-line no-new
+  if (notifiable && document.hidden) new Notification(str)
+}
